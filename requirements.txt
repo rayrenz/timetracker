@@ -1,0 +1,12 @@
+arrow==0.15.2
+dateparser==0.7.2
+Django==2.2.5
+djangorestframework==3.10.3
+moment==0.8.2
+python-dateutil==2.8.0
+pytz==2019.2
+regex==2019.8.19
+six==1.12.0
+sqlparse==0.3.0
+times==0.7
+tzlocal==2.0.0

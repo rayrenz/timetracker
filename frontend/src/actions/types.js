@@ -1,0 +1,7 @@
+export const types = {
+  GET_LOGS: 'LOGS/GET',
+  STORE_LOGS: 'LOGS/STORE',
+  UPDATE_LOG: 'LOG/UPDATE',
+  ADD_LOG: 'LOG/ADD',
+  DELETE_LOG: 'LOG/DELETE',
+};

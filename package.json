@@ -1,0 +1,45 @@
+{
+  "name": "timetracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "private": true,
+  "scripts": {
+    "dev": "webpack --mode development"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@date-io/date-fns": "^1.3.11",
+    "@material-ui/core": "^4.4.2",
+    "@material-ui/icons": "^4.4.1",
+    "@material-ui/pickers": "^3.2.6",
+    "axios": "^0.19.0",
+    "date-fns": "^2.2.1",
+    "lodash": "^4.17.15",
+    "moment": "^2.24.0",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "redux": "^4.0.4",
+    "redux-devtools-extension": "^2.13.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "css-loader": "^3.2.0",
+    "fibers": "^4.0.1",
+    "file-loader": "^4.2.0",
+    "node-sass": "^4.12.0",
+    "react-redux": "^7.1.1",
+    "redux-thunk": "^2.3.0",
+    "sass": "^1.22.12",
+    "sass-loader": "^8.0.0",
+    "style-loader": "^1.0.0",
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.9"
+  }
+}

@@ -19,7 +19,7 @@ function AddLog(props) {
   const [task, setTask] = useState('');
   const [desc, setDesc] = useState('');
   const submit = () => {
-    onSubmit({task, desc});
+    onSubmit({task, description: desc});
   };
   return (
     <Dialog open={open} onClose={onClose}>

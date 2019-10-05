@@ -1,5 +1,6 @@
-import React, {Fragment, useEffect, useState, useCallback} from 'react';
+import React, {Fragment, useEffect, useState, useCallback, useMemo} from 'react';
 import {connect} from 'react-redux';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from "@material-ui/core/Typography";
 import Table from "@material-ui/core/Table";
 import EditIcon from '@material-ui/icons/Edit';
@@ -15,6 +16,9 @@ import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import Checkbox from "@material-ui/core/Checkbox";
 import TextField from "@material-ui/core/TextField";
+import Switch from '@material-ui/core/Switch';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import _ from 'lodash';
 import moment from 'moment';
@@ -48,6 +52,16 @@ const useStyles = makeStyles(theme => ({
     width: '5rem',
     fontSize: '2rem',
   },
+  group: {
+    backgroundColor: '#aeaeae',
+    borderBottom: '2px solid #000000',
+    color: 'white',
+    fontWeight: 600,
+  },
+  loading: {
+    opacity: 0.4,
+    pointerEvents: 'none',
+  }
 }));
 
 function ISO8601_week_no() {
@@ -65,29 +79,67 @@ function ISO8601_week_no() {
 
 function Logs(props) {
    const classes = useStyles();
-  const { getLogs, logs, updateLog, continueLog, deleteLog, addLog } = props;
-  const [current, setCurrent] = useState();
-  const [week, setWeek] = useState(ISO8601_week_no());
-
-  useEffect(() => {
-    getLogs();
-  }, []);
+  const { getLogs, logs, updateLog, continueLog, deleteLog, addLog, removeLog } = props;
+  const [current, setCurrent] = useState(null);
+  const [logsToDisplay, setLogsToDisplay] = useState([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [logToEdit, setLogToEdit] = useState({});
+  const [filters, setFilters] = useState({
+    status: '',
+    week: ISO8601_week_no(),
+  });
+  const [loading, setLoading] = useState(0);
 
   useEffect(() => {
     let hasCurrent = false;
+    const newGroups = [];
+    console.log('list updated');
     logs.map(log => {
       if (!log.end) {
         hasCurrent = true;
       }
+      const g = log.start.format('ddd');
+      if(!newGroups.includes(g)) {
+        newGroups.push(g);
+      }
+      log.group = g;
     });
+    setLogsToDisplay(logs);
     setCurrent(hasCurrent);
   }, [logs]);
 
-  const [addOpen, setAddOpen] = useState(false);
-  const [logToEdit, setLogToEdit] = useState({});
   const onOpenModal = (log) => () => {
     setLogToEdit(log);
   };
+
+  const getLogsDebounced = useCallback(_.debounce(async (queryString) => {
+    setLoading(1);
+    console.log('requesting');
+    await getLogs(queryString, (e) => {
+      const prog = Math.floor(e.loaded / e.total) * 100;
+      setLoading(prog);
+      if (prog && prog % 100 === 0) {
+        setTimeout(() => setLoading(0), 500);
+      }
+    });
+    console.log('done request');
+  }, 1000), []);
+
+  useEffect(() => {
+    console.log('loading', loading);
+  }, [loading]);
+
+  useEffect(() => {
+    let queryString = '';
+    for(let name of Object.keys(filters)) {
+      if (filters[name]) {
+        if (queryString.length > 0) queryString += '&';
+        queryString += `${name}=${filters[name]}`;
+      }
+    }
+    console.log(queryString);
+    getLogsDebounced(queryString);
+  }, [filters]);
 
   const stopLog = log => {
     updateLog({
@@ -96,45 +148,86 @@ function Logs(props) {
     })
   };
 
-  const updateStatus = log => {
-    updateLog({
+  const updateStatus = async function (log) {
+    const res = await updateLog({
       ...log,
-      status: !log.status ? 'a' : '',
+      status: log.status === 'o' ? 'a' : 'o',
+    });
+    if (res === 'success' && filters.status === 'o' && log.status === 'o') {
+      removeLog(log.id);
+    }
+  };
+
+  const renderedGroups = [];
+  let totalMinutes = 0;
+
+
+  const onToggleStatus = e => {
+    setFilters({
+      ...filters,
+      status: e.target.checked ? 'o' : '',
     })
   };
 
-  const weekCallback = _.debounce(weekNum => {
-    getLogs(`?week=${weekNum}`);
-  }, 1000);
-  const callback = useCallback(weekCallback, []);
-
-  useEffect(() => {
-    callback.cancel();
-    callback(week);
-  }, [week]);
+  const onWeekChange = e => {
+    try {
+      const val = parseInt(e.target.value);
+      if (val && val < 53) {
+        setFilters({
+          ...filters,
+          week: val,
+        })
+      } else {
+        setFilters({...filters, week: ''});
+      }
+    } catch(e) {
+      console.log('tried to enter invalid integer', e);
+    }
+  };
 
   return (
     <Fragment>
       <Grid container spacing={1}>
+        <Grid item xs={12}>
+          {!!loading &&
+            <LinearProgress
+              value={loading}
+              variant="buffer"
+              valueBuffer={100}
+              color="secondary"
+            />}
+        </Grid>
         <Grid item xs={6}>
-          <Typography variant="h3">
+          <Typography variant="h3" onClick={e => location.reload()}>
             Logs
           </Typography>
         </Grid>
         <Grid item xs={6} align="right">
-          <TextField
-            label="Week"
-            value={week}
-            id="outlined"
-            className={classes.textField}
-            onChange={e => setWeek(e.target.value)}
-          />
-          <Button onClick={() => setAddOpen(true)} variant="outlined" disabled={current}>
-            Add <AddCircleIcon/>
-          </Button>
+          <FormGroup row>
+            <FormControlLabel
+              control={
+                <Switch
+                  value={filters.status === 'o'}
+                  onChange={onToggleStatus}
+                />
+              }
+              labelPlacement="start"
+              label="Hide archived"
+            />
+            <TextField
+              label="Week"
+              value={filters.week}
+              id="outlined"
+              className={classes.textField}
+              onChange={onWeekChange}
+            />
+            <Button onClick={() => setAddOpen(true)} variant="outlined" disabled={current} size="small">
+              Add <AddCircleIcon/>
+            </Button>
+          </FormGroup>
         </Grid>
         <Grid item xs={12}>
-          <Table>
+          <Table size="small" className={loading && classes.loading}>
             <TableHead>
               <TableRow>
                 <TableCell>Task</TableCell>
@@ -147,62 +240,87 @@ function Logs(props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {logs.map(log => {
-                let hours, minutes;
+              {logsToDisplay.map(log => {
+                let hours, minutes, duration;
                 if (log.end) {
                   hours = parseInt(log.end.diff(log.start, 'hours'));
-                  minutes = parseInt(log.end.diff(log.start, 'minutes')) - (hours * 60);
+                  duration = parseInt(log.end.diff(log.start, 'minutes'));
+                  minutes = duration - (hours * 60);
+                  totalMinutes += duration;
+                }
+                const renderGroup = !renderedGroups.includes(log.group);
+                if (renderGroup) {
+                  renderedGroups.push(log.group);
                 }
 
                 return (
-                  <TableRow key={log.id} className={log.status === 'a' ?  classes.archived : ''}>
-                    <TableCell className={classes.taskColumn}>
-                      {log.task}
-                    </TableCell>
-                    <TableCell>
-                      {log.description}
-                    </TableCell>
-                    <TableCell>
-                      {log.start.format(dateTimeFormat)}
-                    </TableCell>
-                    <TableCell>
-                      {log.end ? log.end.format(dateTimeFormat) : ''}
-                    </TableCell>
-                    <TableCell>
-                      {!!hours && `${hours}h`} {!!minutes && `${minutes}m`}
-                    </TableCell>
-                    <TableCell className={classes.actionsColumn}>
-                      <Button className={classes.editButton} variant="contained" size="small"
-                              onClick={onOpenModal(log)}>
-                        <EditIcon/>
-                      </Button>
-                      {log.end ?
-                        <Button className={classes.continueButton} color="primary" size="small"
-                                disabled={current} variant="contained" onClick={() => continueLog(log)}>
-                          <PlayArrowIcon/>
-                        </Button> :
-                        <Button className={classes.continueButton} color="primary" size="small"
-                                variant="contained" onClick={() => stopLog(log)}>
-                          <StopRoundedIcon/>
-                        </Button>
-                      }
-                      <Button variant="contained" color="secondary" size="small"
-                              onClick={() => deleteLog(log)}>
-                        <DeleteIcon/>
-                      </Button>
-                    </TableCell>
-                    <TableCell className={classes.statusColumn}>
-                      <Checkbox checked={log.status === 'a'} onChange={() => updateStatus(log)}/>
-                    </TableCell>
-                  </TableRow>)
+                  <Fragment key={log.id}>
+                    {renderGroup &&
+                      <TableRow>
+                        <TableCell colSpan={7} className={classes.group}>{log.group}</TableCell>
+                      </TableRow>}
+                      <TableRow key={log.id} className={log.status === 'a' ?  classes.archived : ''}>
+                        <TableCell className={classes.taskColumn}>
+                          {log.task}
+                        </TableCell>
+                        <TableCell>
+                          {log.description}
+                        </TableCell>
+                        <TableCell>
+                          {log.start.format(dateTimeFormat)}
+                        </TableCell>
+                        <TableCell>
+                          {log.end ? log.end.format(dateTimeFormat) : ''}
+                        </TableCell>
+                        <TableCell>
+                          {!!hours && `${hours}h`} {!!minutes && `${minutes}m`}
+                        </TableCell>
+                        <TableCell className={classes.actionsColumn}>
+                          <Button className={classes.editButton} variant="contained" size="small"
+                                  onClick={onOpenModal(log)}>
+                            <EditIcon/>
+                          </Button>
+                          {log.end ?
+                            <Button className={classes.continueButton} color="primary" size="small"
+                                    disabled={current} variant="contained" onClick={() => continueLog(log)}>
+                              <PlayArrowIcon/>
+                            </Button> :
+                            <Button className={classes.continueButton} color="primary" size="small"
+                                    variant="contained" onClick={() => stopLog(log)}>
+                              <StopRoundedIcon/>
+                            </Button>
+                          }
+                          <Button variant="contained" color="secondary" size="small"
+                                  onClick={() => deleteLog(log)}>
+                            <DeleteIcon/>
+                          </Button>
+                        </TableCell>
+                        <TableCell className={classes.statusColumn}>
+                          <Checkbox checked={log.status === 'a'} onChange={() => updateStatus(log)}/>
+                        </TableCell>
+                      </TableRow>
+                    </Fragment>)
               })}
+              <TableRow>
+                <TableCell colSpan={7} style={{textAlign: 'right'}}>
+                  Duration: {(() => {
+                    let hours = parseInt(totalMinutes / 60);
+                    let minutes = totalMinutes % 60;
+                    return (
+                      <span>
+                        {hours}h {minutes}m
+                      </span>
+                    )
+                })()}
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </Grid>
       </Grid>
       {!_.isEmpty(logToEdit) &&
         <UpdateLogModal open data={logToEdit} onClose={() => setLogToEdit({})} onSubmit={updateLog}/>}
-      <AddLogModal open={addOpen} onClose={() => setAddOpen(false)} onSubmit={addLog}/>
+      <AddLogModal open={addOpen} onClose={() => setAddOpen(false)} onSubmit={addLog} />
     </Fragment>
   )
 }
@@ -217,6 +335,7 @@ const mapDispatchToProps = ({
   continueLog: logActions.continueLog,
   deleteLog: logActions.deleteLog,
   addLog: logActions.addLog,
+  removeLog: logActions.removeLog,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Logs);

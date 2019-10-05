@@ -1,2 +1,11 @@
 @import "fonts/Roboto/roboto.scss";
 @import "fonts/MaterialIcons/material-icons.css";
+
+body {
+  margin: 0;
+  background: #f5f5f5;
+  main > div {
+    background: white;
+    padding-top: 2rem;
+  }
+}

@@ -3,9 +3,13 @@ import moment from 'moment';
 import { types } from "./types";
 
 export const logActions = {
-  getLogs: (filter = '') => dispatch => {
+  getLogs: (filter = '', onDownloadCallback) => dispatch => {
     axios
-      .get(`/api/logs/${filter}`)
+      .get(`/api/logs/?${filter}`, {
+        onDownloadProgress: progressEvent => {
+          onDownloadCallback(progressEvent);
+        }
+      })
       .then(res => {
         res.data.map(log => {
           log.start = moment(log.start).startOf('minute');
@@ -22,9 +26,11 @@ export const logActions = {
         console.log(error);
       })
   },
-  updateLog: data => dispatch => {
+  updateLog: data => async dispatch => {
+    console.log('update log dispatched');
     const {id, description, start, end, task, status} = data;
-    axios
+    let myres = '';
+    await axios
       .put(`/api/logs/${id}/`, {
         task,
         description,
@@ -33,15 +39,17 @@ export const logActions = {
         status,
       })
       .then(res => {
-        console.log(res);
+        console.log('received response', res.data);
         dispatch({
           type: types.UPDATE_LOG,
           payload: data,
-        })
+        });
+        myres = 'success';
       })
       .catch(error => {
         console.log(error);
       });
+    return myres;
   },
   continueLog: data => dispatch => {
     const {task, description} = data;
@@ -78,6 +86,10 @@ export const logActions = {
         console.log(error);
       });
   },
+  removeLog: id => ({
+    type: types.DELETE_LOG,
+    payload: id,
+  }),
   addLog: data => dispatch => {
     axios
       .post('/api/logs/', data)

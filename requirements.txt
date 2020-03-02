@@ -1,6 +1,6 @@
 arrow==0.15.2
 dateparser==0.7.2
-Django==2.2.5
+Django==2.2.10
 djangorestframework==3.10.3
 moment==0.8.2
 python-dateutil==2.8.0

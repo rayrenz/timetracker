@@ -9,3 +9,15 @@ body {
     padding-top: 2rem;
   }
 }
+
+tr:hover {
+  background-color: #6ffdff;
+}
+
+tr.open {
+  background-color: #40b654;
+  td {
+    font-weight: bold;
+    color: white;
+  }
+}

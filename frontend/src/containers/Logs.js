@@ -259,7 +259,7 @@ function Logs(props) {
                       <TableRow>
                         <TableCell colSpan={7} className={classes.group}>{log.group}</TableCell>
                       </TableRow>}
-                      <TableRow key={log.id} className={log.status === 'a' ?  classes.archived : ''}>
+                      <TableRow key={log.id} className={log.status === 'a' ?  classes.archived : (log.end ? '': 'open')}>
                         <TableCell className={classes.taskColumn}>
                           {log.task}
                         </TableCell>

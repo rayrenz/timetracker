@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'graphene_django',
     'frontend',
     'backend',
 ]
@@ -125,3 +126,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
   os.path.join(BASE_DIR, 'dist'),
 ]
+
+GRAPHENE = {
+    'SCHEMA': 'timetracker.schema.schema',
+}

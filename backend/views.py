@@ -3,7 +3,7 @@ from datetime import datetime
 from django.utils.timezone import now
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import LogEntry
+from backend.models.backend import LogEntry
 from .serializers import LogEntrySerializer
 
 
@@ -28,7 +28,7 @@ class LogEntryViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data
         latest = self.get_queryset().first()
-        if (now() - latest.end).total_seconds() <= 180:
+        if latest and (now() - latest.end).total_seconds() <= 180:
             data.update({'start': latest.end})
         else:
             data.update({'start': now()})

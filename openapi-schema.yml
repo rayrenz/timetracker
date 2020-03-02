@@ -1,0 +1,203 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /api/logs/:
+    get:
+      operationId: listLogEntrys
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                      readOnly: true
+                    start:
+                      type: string
+                      format: date-time
+                    end:
+                      type: string
+                      format: date-time
+                      nullable: true
+                    task:
+                      type: string
+                      maxLength: 10
+                    description:
+                      type: string
+                      maxLength: 200
+                    status:
+                      type: string
+                      maxLength: 1
+                  required:
+                  - task
+          description: ''
+    post:
+      operationId: createLogEntry
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                  nullable: true
+                task:
+                  type: string
+                  maxLength: 10
+                description:
+                  type: string
+                  maxLength: 200
+                status:
+                  type: string
+                  maxLength: 1
+              required:
+              - task
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  start:
+                    type: string
+                    format: date-time
+                  end:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  task:
+                    type: string
+                    maxLength: 10
+                  description:
+                    type: string
+                    maxLength: 200
+                  status:
+                    type: string
+                    maxLength: 1
+                required:
+                - task
+          description: ''
+  /api/logs/{id}/:
+    get:
+      operationId: retrieveLogEntry
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this log entry.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  start:
+                    type: string
+                    format: date-time
+                  end:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  task:
+                    type: string
+                    maxLength: 10
+                  description:
+                    type: string
+                    maxLength: 200
+                  status:
+                    type: string
+                    maxLength: 1
+                required:
+                - task
+          description: ''
+    put:
+      operationId: updateLogEntry
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this log entry.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                  nullable: true
+                task:
+                  type: string
+                  maxLength: 10
+                description:
+                  type: string
+                  maxLength: 200
+                status:
+                  type: string
+                  maxLength: 1
+              required:
+              - task
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  start:
+                    type: string
+                    format: date-time
+                  end:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  task:
+                    type: string
+                    maxLength: 10
+                  description:
+                    type: string
+                    maxLength: 200
+                  status:
+                    type: string
+                    maxLength: 1
+                required:
+                - task
+          description: ''
+    delete:
+      operationId: destroyLogEntry
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this log entry.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''

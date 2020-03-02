@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LogEntry
+from backend.models.backend import LogEntry
 
 
 class LogEntrySerializer(serializers.ModelSerializer):

@@ -260,7 +260,8 @@ function Logs(props) {
                         <TableCell colSpan={7} className={classes.group}>{log.group}</TableCell>
                       </TableRow>}
                       <TableRow key={log.id} className={log.status === 'a' ?  classes.archived : (log.end ? '': 'open')}>
-                        <TableCell className={classes.taskColumn}>
+                        <TableCell className={classes.taskColumn} 
+                          onClick={() => navigator.clipboard.writeText(log.task)}>
                           {log.task}
                         </TableCell>
                         <TableCell>
